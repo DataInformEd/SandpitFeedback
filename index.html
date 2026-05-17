@@ -221,6 +221,24 @@
             </label>`;
           });
           html += `</div>`;
+
+
+
+          } else if (q.type === 'conditional-parent') {
+      // Track lookup maps in window context safely
+      window.conditionalMappings = window.conditionalMappings || {};
+      window.conditionalMappings[i] = q.mapping;
+      
+      html += `<select name="q_val_${i}" ${reqAttr} onchange="handleParentChange(${i}, ${q.childIndex})" class="w-full border border-gray-200 rounded-xl p-3 bg-gray-50 outline-none focus:ring-2 cursor-pointer appearance-none">
+        <option value="" disabled selected>Select ${q.label}...</option>`;
+        q.options.forEach(opt => html += `<option value="${opt}">${opt}</option>`);
+      html += `</select>`;
+
+    } else if (q.type === 'conditional-child') {
+      html += `<select name="q_val_${i}" id="child_select_${i}" ${reqAttr} class="w-full border border-gray-200 rounded-xl p-3 bg-gray-50 outline-none focus:ring-2 cursor-pointer appearance-none">
+        <option value="" disabled selected>Select an option above first...</option>
+      </select>`;
+         
         
         } else {
           // Multiple choice pills
@@ -242,6 +260,31 @@
       for (let i = 0; i < siblings.length; i++) siblings[i].classList.remove('pill-selected');
       element.classList.add('pill-selected');
     }
+
+
+    function handleParentChange(parentIndex, childIndex) {
+  const parentSelect = document.getElementsByName(`q_val_${parentIndex}`)[0];
+  const childSelect = document.getElementById(`child_select_${childIndex}`);
+  if (!parentSelect || !childSelect) return;
+  
+  const selectedValue = parentSelect.value;
+  const mapping = window.conditionalMappings[parentIndex];
+  const options = mapping ? mapping[selectedValue] : [];
+  
+  // Reset child menu element states
+  childSelect.innerHTML = '<option value="" disabled selected>Select an option...</option>';
+  
+  // Inject relevant subcategory targets
+  if (options) {
+    options.forEach(opt => {
+      const el = document.createElement('option');
+      el.value = opt;
+      el.textContent = opt;
+      childSelect.appendChild(el);
+    });
+  }
+}
+    
 
     function updateCheckboxValue(qIndex) {
       const checkboxes = document.querySelectorAll('.check-group-' + qIndex + ':checked');
